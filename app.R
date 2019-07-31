@@ -46,7 +46,8 @@ ui <- pageWithSidebar(
     
     # Main panel for displaying outputs ----
     mainPanel(
-        plotOutput("ratioPlot")  # Need to create an output$ratioPlot object in Server that corrosponds to this
+        plotOutput("ratioPlot"),
+        textOutput("dataTest") # Need to create an output$ratioPlot object in Server that corrosponds to this
     )
 )
 
@@ -74,9 +75,8 @@ calculateObservedRatiosFrom <- function(observedValues) {
         # Push press to jerk
     pushpress.to.jerk <- observedValues$Push.press/observedValues$Jerk*100
         # Overhead squat to back squat
-    ohsquat.to.backsquat <- observedValues$OH.squat/observedValues$Back.squat*100
-    
-    observedRatios.df <- c(snatch.to.backsquat, cleanjerk.to.backsquat, cleanjerk.to.frontsquat, snatch.to.cleanjerk, 
+    ohsquat.to.backsquat <- observedValues$OH.squat/observedValues$Back.squat*100 # TODO: this calculation isn't working for some reason?
+    observedRatios.df <<- c(snatch.to.backsquat, cleanjerk.to.backsquat, cleanjerk.to.frontsquat, snatch.to.cleanjerk, 
                                           frontsquat.to.backsquat, powersnatch.to.snatch, powerclean.to.clean, Clean.to.deadlift, 
                                           press.to.pushpress, pushpress.to.jerk, ohsquat.to.backsquat)
 
@@ -85,49 +85,45 @@ calculateObservedRatiosFrom <- function(observedValues) {
 
 # Becuase observedRatios.df doesn't appear to be accessible these calculations seem to fail. 
 calculateTargetRatiosFrom <- function(observedRatios) {
-
-    targetRatios.df$snatch.to.backsquat.low <- observedRatios$snatch.to.backsquat - 60
     
-    
+    targetRatios.df["snatch.to.backsquat.low"] <<- observedRatios.df[1] - 60
     # Clean and jerk to back squat
-    targetRatios.df$cleanjerk.to.backsquat.low <- observedRatios$cleanjerk.to.backsquat -80
-    
+    targetRatios.df["cleanjerk.to.backsquat.low"] <<- observedRatios.df[2] -80
+
     # Clean and jerk to front squat
-    targetRatios.df$cleanjerk.to.frontsquat.low <- observedRatios$cleanjerk.to.frontsquat -85
+    targetRatios.df["cleanjerk.to.frontsquat.low"] <<- observedRatios[3] -85
     
     # Snatch to clean and jerk
-    targetRatios.df$snatch.to.cleanjerk.low <- observedRatios$snatch.to.cleanjerk -80
+    targetRatios.df["snatch.to.cleanjerk.low"] <<- observedRatios[4] -80
     
     # Front squat to back squat
-    targetRatios.df$frontsquat.to.backsquat.low <- observedRatios$frontsquat.to.backsquat -85
+    targetRatios.df["frontsquat.to.backsquat.low"] <<- observedRatios[5] -85
     
     # Power snatch to full snatch
-    targetRatios.df$powersnatch.to.snatch.low <- observedRatios$powersnatch.to.snatch -80
+    targetRatios.df["powersnatch.to.snatch.low"] <<- observedRatios[6] -80
     
     # Power clean to full clean
-    targetRatios.df$powerclean.to.clean.low <- observedRatios$powerclean.to.clean -80
+    targetRatios.df["powerclean.to.clean.low"] <<- observedRatios[7] -80
     
     # Clean to deadlift
-    targetRatios.df$Clean.to.deadlift.low <- observedRatios$Clean.to.deadlift -70
+    targetRatios.df["Clean.to.deadlift.low"] <<- observedRatios[8] -70
     
     # Press to push press
-    targetRatios.df$press.to.pushpress.low <- observedRatios$press.to.pushpress -70
+    targetRatios.df["press.to.pushpress.low"] <<- observedRatios[9] -70
     
     # Push press to jerk
-    targetRatios.df$pushpress.to.jerk.low <- observedRatios$pushpress.to.jerk -75
+    targetRatios.df["pushpress.to.jerk.low"] <<- observedRatios[10] -75
     
     # Overhead squat to back squat
-    targetRatios.df$ohsquat.to.backsquat.low <- observedRatios$ohsquat.to.backsquat -65
-    
-    print("Target Ratios Low:")
-    print(targetRatios.df)
+    targetRatios.df["ohsquat.to.backsquat.low"] <<- observedRatios[11] -65 # TODO: Because the OHS/BS calculation fails (above) This gets no value
+
 
 }
 
 
 saveData <- function(input) {
     df <- data.frame(liftIDs, input)
-    df.wide <- spread(df, liftIDs, input)
+    df.wide <<- spread(df, liftIDs, input)
     calculateObservedRatiosFrom(df.wide)
     calculateTargetRatiosFrom(observedRatios.df)
 
@@ -141,7 +137,7 @@ server <- function(input, output){
                        input$Snatch, input$Power.snatch, input$OH.squat, input$Clean.and.jerk, input$Jerk, 
                        input$Press, input$Push.press)
         output$dataTest <- renderText( {
-            input$Front.squat
+            targetRatios.df
         })
         saveData(inputData)   
          })
