@@ -12,9 +12,9 @@ library(shiny)
 library(tidyr)
 
 # Global Variables
-liftIDs <- c("Front.squat", "Back.squat", "Deadlift", "Power.clean", "Clean", "Snatch", "Power.snatch", "OH.Squat", "Clean.and.jerk", "Jerk", "Press", "Push.press")
+liftIDs <- c("Front.squat", "Back.squat", "Deadlift", "Power.clean", "Clean", "Snatch", "Power.snatch", "OH.squat", "Clean.and.jerk", "Jerk", "Press", "Push.press")
 liftLabels <- c("Front squat", "Back squat", "Deadlift", "Power clean", "Clean", "Snatch", "Power snatch", "OH Squat", "Clean and jerk", "Jerk", "Press", "Push press")
-observedRatios.df <- c() # It's not clear that these globally-defined objects are accessible or bring properly referenced/written to elsewhere. 
+observedRatios.df <- c() 
 targetRatios.df <- c()
 df.wide <- c()
 
@@ -47,12 +47,13 @@ ui <- pageWithSidebar(
     # Main panel for displaying outputs ----
     mainPanel(
         plotOutput("ratioPlot"),
-        textOutput("dataTest") # Need to create an output$ratioPlot object in Server that corrosponds to this
+        textOutput("observedRatioData"), # Need to create an output$ratioPlot object in Server that corrosponds to this
+        textOutput("targetRatioData")
     )
 )
 
 
-# The below calculations work but it is not clear that observedRatios.df is accessible outside of this function. When attempting to access observedRatios.df NULL is returned. 
+
 calculateObservedRatiosFrom <- function(observedValues) {
 
     snatch.to.backsquat <- observedValues$Snatch/observedValues$Back.squat*100
@@ -76,48 +77,53 @@ calculateObservedRatiosFrom <- function(observedValues) {
     pushpress.to.jerk <- observedValues$Push.press/observedValues$Jerk*100
         # Overhead squat to back squat
     ohsquat.to.backsquat <- observedValues$OH.squat/observedValues$Back.squat*100 # TODO: this calculation isn't working for some reason?
+    
     observedRatios.df <<- c(snatch.to.backsquat, cleanjerk.to.backsquat, cleanjerk.to.frontsquat, snatch.to.cleanjerk, 
                                           frontsquat.to.backsquat, powersnatch.to.snatch, powerclean.to.clean, Clean.to.deadlift, 
                                           press.to.pushpress, pushpress.to.jerk, ohsquat.to.backsquat)
-
+print(observedValues$OH.squat)
 }
 
 
-# Becuase observedRatios.df doesn't appear to be accessible these calculations seem to fail. 
+
 calculateTargetRatiosFrom <- function(observedRatios) {
     
-    targetRatios.df["snatch.to.backsquat.low"] <<- observedRatios.df[1] - 60
-    # Clean and jerk to back squat
-    targetRatios.df["cleanjerk.to.backsquat.low"] <<- observedRatios.df[2] -80
+    
+    
+    snatch.to.backsquat.low <- observedRatios.df[1] - 60
+    
+    cleanjerk.to.backsquat.low <- observedRatios.df[2] - 80
+    
+    
+    cleanjerk.to.frontsquat.low <- observedRatios[3] - 85
+    
+    
+    snatch.to.cleanjerk.low <- observedRatios[4] - 80
+    
+    
+    frontsquat.to.backsquat.low <- observedRatios[5] - 85
+    
+     
+    powersnatch.to.snatch.low <- observedRatios[6] - 80
+    
+    
+    powerclean.to.clean.low <- observedRatios[7] - 80
+    
+    
+    clean.to.deadlift.low <- observedRatios[8] - 70
+    
+    
+    press.to.pushpress.low <- observedRatios[9] - 70
+    
+    
+    pushpress.to.jerk.low <- observedRatios[10] - 75
+    
 
-    # Clean and jerk to front squat
-    targetRatios.df["cleanjerk.to.frontsquat.low"] <<- observedRatios[3] -85
+    ohsquat.to.backsquat.low <- observedRatios[11] - 65 # TODO: this calculation isn't working for some reason?
     
-    # Snatch to clean and jerk
-    targetRatios.df["snatch.to.cleanjerk.low"] <<- observedRatios[4] -80
-    
-    # Front squat to back squat
-    targetRatios.df["frontsquat.to.backsquat.low"] <<- observedRatios[5] -85
-    
-    # Power snatch to full snatch
-    targetRatios.df["powersnatch.to.snatch.low"] <<- observedRatios[6] -80
-    
-    # Power clean to full clean
-    targetRatios.df["powerclean.to.clean.low"] <<- observedRatios[7] -80
-    
-    # Clean to deadlift
-    targetRatios.df["Clean.to.deadlift.low"] <<- observedRatios[8] -70
-    
-    # Press to push press
-    targetRatios.df["press.to.pushpress.low"] <<- observedRatios[9] -70
-    
-    # Push press to jerk
-    targetRatios.df["pushpress.to.jerk.low"] <<- observedRatios[10] -75
-    
-    # Overhead squat to back squat
-    targetRatios.df["ohsquat.to.backsquat.low"] <<- observedRatios[11] -65 # TODO: Because the OHS/BS calculation fails (above) This gets no value
-
-
+    targetRatios.df <<- c(snatch.to.backsquat.low, cleanjerk.to.backsquat.low, cleanjerk.to.frontsquat.low, snatch.to.cleanjerk.low, 
+                          frontsquat.to.backsquat.low, powersnatch.to.snatch.low, powerclean.to.clean.low, clean.to.deadlift.low, 
+                          press.to.pushpress.low, pushpress.to.jerk.low, ohsquat.to.backsquat.low)
 }
 
 
@@ -136,8 +142,12 @@ server <- function(input, output){
         inputData <- c(input$Front.squat, input$Back.squat, input$Deadlift, input$Power.clean, input$Clean, 
                        input$Snatch, input$Power.snatch, input$OH.squat, input$Clean.and.jerk, input$Jerk, 
                        input$Press, input$Push.press)
-        output$dataTest <- renderText( {
+        output$targetRatioData <- renderText( {
             targetRatios.df
+            # observedRatios.df
+        })
+        output$observedRatioData <- renderText( {
+            observedRatios.df
         })
         saveData(inputData)   
          })
