@@ -76,12 +76,12 @@ calculateObservedRatiosFrom <- function(observedValues) {
         # Push press to jerk
     pushpress.to.jerk <- observedValues$Push.press/observedValues$Jerk*100
         # Overhead squat to back squat
-    ohsquat.to.backsquat <- observedValues$OH.squat/observedValues$Back.squat*100 # TODO: this calculation isn't working for some reason?
+    ohsquat.to.backsquat <- observedValues$OH.squat/observedValues$Back.squat*100 
     
     observedRatios.df <<- c(snatch.to.backsquat, cleanjerk.to.backsquat, cleanjerk.to.frontsquat, snatch.to.cleanjerk, 
                                           frontsquat.to.backsquat, powersnatch.to.snatch, powerclean.to.clean, Clean.to.deadlift, 
                                           press.to.pushpress, pushpress.to.jerk, ohsquat.to.backsquat)
-print(observedValues$OH.squat)
+
 }
 
 
@@ -119,7 +119,7 @@ calculateTargetRatiosFrom <- function(observedRatios) {
     pushpress.to.jerk.low <- observedRatios[10] - 75
     
 
-    ohsquat.to.backsquat.low <- observedRatios[11] - 65 # TODO: this calculation isn't working for some reason?
+    ohsquat.to.backsquat.low <- observedRatios[11] - 65 
     
     targetRatios.df <<- c(snatch.to.backsquat.low, cleanjerk.to.backsquat.low, cleanjerk.to.frontsquat.low, snatch.to.cleanjerk.low, 
                           frontsquat.to.backsquat.low, powersnatch.to.snatch.low, powerclean.to.clean.low, clean.to.deadlift.low, 
